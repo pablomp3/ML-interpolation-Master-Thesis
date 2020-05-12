@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 import midi
 import os
+import pickle
 
 lowerBound = 36 #24
 upperBound = 80 #102
@@ -124,98 +125,137 @@ spam_spec = importlib.util.find_spec("py-midi")
 found = spam_spec is not None
 print(found)'''
 
-#folder_in = 'total_midi_10s_after_similarity_ev_out'
 folder_in = 'final_interpolation_dataset'
 folder_out = 'training_matrices'
-directory = sorted(os.listdir(folder_in))[:]
-#print(directory[0:20])
-print(len(directory), "midi tracks to add to df and then save as pickle files by chunks")
-#print(directory)
-counter = []
-midi_names = []
-matrices = []
-shapes = []
-up_to_9999 = 0
-save_csv_name = 0 #int to change the name of the csv file every chunk
-i=0
-number_tracks_per_df = 9000 #size of the chunk #better if divisible by 3
 
-'''while(i<len(directory)):
-
-    #print(i, " ", current_track_name, np.shape(curr_state_matrix), "-", np.shape(curr_state_matrix)[0])
-    #if np.shape(curr_state_matrix)[0] != 43: #tracks who don't achieve 43
-    #counter.append(np.shape(curr_state_matrix)[0])
-    if len(directory)-i < number_tracks_per_df:
-        remain = len(directory)-i
-        print(remain, "files remaining")
-        while (up_to_9999 < remain):
-            current_track_name = directory[i]
-            curr_state_matrix = midiToNoteStateMatrix(
-                folder_in + "/" + current_track_name)  # transform track to matrix for training
-            midi_names.append(current_track_name)
-            matrices.append(curr_state_matrix)
-            shapes.append(np.shape(curr_state_matrix))
-            up_to_9999 = up_to_9999 + 1
-            i = i + 1
-    else:
-        while(up_to_9999 < number_tracks_per_df):
-            current_track_name = directory[i]
-            curr_state_matrix = midiToNoteStateMatrix(folder_in + "/" + current_track_name)  # transform track to matrix for training
-            midi_names.append(current_track_name)
-            matrices.append(curr_state_matrix)
-            shapes.append(np.shape(curr_state_matrix))
-            up_to_9999 = up_to_9999 + 1
-            i=i+1
-    up_to_9999 = 0
-    d = {'midi_names':midi_names,'matrices':matrices, 'matrix_shape':shapes}
-    df = pd.DataFrame(d)
-    #df.to_csv(folder_out+'/matrices_'+str(save_csv_name)+'.csv', index=False)
-    df.to_pickle(folder_out+'/matrices_pkl_'+str(save_csv_name)+'.pkl')
+create_pickle_from_songs = False
+if create_pickle_from_songs:
+    directory = sorted(os.listdir(folder_in))[:]
+    #print(directory[0:20])
+    print(len(directory), "midi tracks to add to df and then save as pickle files by chunks")
+    #print(directory)
+    counter = []
     midi_names = []
     matrices = []
     shapes = []
-    print(i, "saved", save_csv_name, "as pickle")
-    save_csv_name = save_csv_name + 1'''
+    up_to_9999 = 0
+    save_csv_name = 0 #int to change the name of the csv file every chunk
+    i=0
+    number_tracks_per_df = 9000 #size of the chunk #better if divisible by 3
 
-'''object = pd.read_pickle('training_matrices/matrices_pkl0.pkl')
-print(object[11:12])
-print(object[11:12].iloc[0]['matrix_shape'])
-print(np.shape(object[11:12].iloc[0]['matrices']))
-print(type(object[11:12].iloc[0]['matrix_shape']))
-print(object[11:12].iloc[0]['matrix_shape'] == (43, 44, 2))
-pad = object[11:12].iloc[0]['matrices'][0]
-print(pad)
-print(np.shape(pad))
-print(type(object.iloc[0]['matrices']))
-object[11:12].iloc[0]['matrices'].append(pad)
-print(np.shape(object[11:12].iloc[0]['matrices']) == (43, 44, 2))'''
+    while(i<len(directory)):
+
+        #print(i, " ", current_track_name, np.shape(curr_state_matrix), "-", np.shape(curr_state_matrix)[0])
+        #if np.shape(curr_state_matrix)[0] != 43: #tracks who don't achieve 43
+        #counter.append(np.shape(curr_state_matrix)[0])
+        if len(directory)-i < number_tracks_per_df:
+            remain = len(directory)-i
+            print(remain, "files remaining")
+            while (up_to_9999 < remain):
+                current_track_name = directory[i]
+                curr_state_matrix = midiToNoteStateMatrix(
+                    folder_in + "/" + current_track_name)  # transform track to matrix for training
+                midi_names.append(current_track_name)
+                matrices.append(curr_state_matrix)
+                shapes.append(np.shape(curr_state_matrix))
+                up_to_9999 = up_to_9999 + 1
+                i = i + 1
+        else:
+            while(up_to_9999 < number_tracks_per_df):
+                current_track_name = directory[i]
+                curr_state_matrix = midiToNoteStateMatrix(folder_in + "/" + current_track_name)  # transform track to matrix for training
+                midi_names.append(current_track_name)
+                matrices.append(curr_state_matrix)
+                shapes.append(np.shape(curr_state_matrix))
+                up_to_9999 = up_to_9999 + 1
+                i=i+1
+        up_to_9999 = 0
+        d = {'midi_names':midi_names,'matrices':matrices, 'matrix_shape':shapes}
+        df = pd.DataFrame(d)
+        #df.to_csv(folder_out+'/matrices_'+str(save_csv_name)+'.csv', index=False)
+        df.to_pickle(folder_out+'/matrices_pkl_'+str(save_csv_name)+'.pkl')
+        midi_names = []
+        matrices = []
+        shapes = []
+        print(i, "saved", save_csv_name, "as pickle")
+        save_csv_name = save_csv_name + 1
 
 # Merge all the csv/pickle files created
-all_csv = sorted(os.listdir(folder_out))[:]
-print("files to merge:", all_csv)
-for i in range(0,len(all_csv)):
-    all_csv[i] = folder_out+"/"+all_csv[i]
-    #print(all_csv[i])
-print("location to merge:", all_csv)
-#combine all files in the list
-combined_csv = pd.concat([pd.read_csv(f) for f in all_csv])
-#export to csv
-#combined_csv.to_csv(folder_out+"/combined_csv.csv", index=False)
-combined_csv.to_pickle(folder_out+'/combined_pkl.pkl')
-print("all files already merged!")
+merge_pkl = True
+files_to_merge = 3
+merged_name = 'combined_3'
+if merge_pkl:
+    all_csv = sorted(os.listdir(folder_out))[:files_to_merge]
+    print("files to merge:", all_csv)
+    for i in range(0,len(all_csv)):
+        all_csv[i] = folder_out+"/"+all_csv[i]
+        #print(all_csv[i])
+    print("location to merge:", all_csv)
+    #combine all files in the list
+    combined_csv = pd.concat([pd.read_pickle(f) for f in all_csv])
+    #export to csv/pickle
+    #combined_csv.to_csv(folder_out+"/combined_csv.csv", index=False)
+    combined_csv.to_pickle(folder_out+'/'+merged_name+'_pkl.pkl')
+    print("all files already merged!")
 
-'''#df_total = pd.read_csv(folder_out+'/combined_csv.csv')
-df_total = pd.read_csv(folder_out+'/matrices_0.csv')
-df_total = df_total[12:22]
-print(df_total)
-print(len(df_total), "tracks in the final dataframe (combined_csv) before removing tracks without matrix shape (43,44,2)")
+prepare_clean_data = True
+file_name = 'combined_clean_3'
+if prepare_clean_data:
+    # pad to add to tracks in order to reach a shape of 43x44x2
+    pad = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],
+           [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],
+           [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],
+           [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
+    print('pad:', pad)
+    print('pad shape', np.shape(pad))
+    # pd.show_versions()
+    object = pd.read_pickle('training_matrices/'+merged_name+'_pkl.pkl') # --- CHANGE NAME
+    object = object.reset_index(drop=True)
+    # object = object[:200]
+    print('length of data:', len(object))
+    remove_rows = []
+    remove_values = []
+    padded = []
+    print(object[20875:])
+    element = 0
+    print('target length: 43')
+    #print('track length:', np.shape(object[element:element + 1].iloc[0]['matrices'])[0])
+    #print('track length:', object[element:element + 1].iloc[0]['matrix_shape'][0])
 
-# Remove training examples containing NaN values and dropping unwanted columns for training
-nan_values_counter = 0
-nan_rows = []
-print(df_total.iloc[0]['matrices'])
-print(type(df_total.iloc[0]['matrices']))
-#print(np.shape(df_total['matrices'][:1]) == (43, 44, 2))
-for index, row in df_total.iterrows():
-    if df_total['matrix_shape'][index] != (43, 44, 2):
-        print("remove", index, df_total['matrix_shape'][index])'''
+    for i in range(0,len(object)): # go through all tracks
+        # if track length if above 43 or below 33 remove it from dataset
+        if np.shape(object[i:i+1].iloc[0]['matrices'])[0] > 43 or np.shape(object[i:i+1].iloc[0]['matrices'])[0] < 33:
+            remove_rows.append(i)
+            remove_values.append(np.shape(object[i:i + 1].iloc[0]['matrices'])[0])
+
+        # if track length is between 33 and 43 add pad to reach standard length of 43
+        if np.shape(object[i:i+1].iloc[0]['matrices'])[0] >= 33 and np.shape(object[i:i+1].iloc[0]['matrices'])[0] < 43:
+            while (np.shape(object[i:i+1].iloc[0]['matrices'])[0] < 43):
+                object[i:i + 1].iloc[0]['matrices'].append(pad)
+            padded.append(np.shape(object[i:i + 1].iloc[0]['matrices'])[0])
+
+    print(len(padded), 'tracks restored (padded)')
+    print(remove_rows)
+    print(remove_values)
+    print(len(remove_rows), 'tracks to remove:', remove_rows)
+    object = object.drop(index = remove_rows, axis=0)
+    print(len(remove_values), 'tracks removed:')
+    print('length of data after cleaning:', len(object))
+
+    # confirmation of successfully deletion (aka all tracks must have length of 43)
+    remove_values_1 = []
+    remove_rows_1 = []
+    for i in range(0,len(object)):
+        if np.shape(object[i:i + 1].iloc[0]['matrices'])[0] != 43:
+            remove_rows_1.append(i)
+            remove_values_1.append(np.shape(object[i:i + 1].iloc[0]['matrices'])[0])
+    print('to remove (should be empty if correct):', remove_values_1)
+    if len(remove_rows_1) > 0:
+        object = object.drop(remove_rows)
+
+    print('length of data after second cleaning:', len(object))
+    # delete names and shapes of the dataframe
+    object.drop(columns='midi_names', inplace=True)
+    object.drop(columns='matrix_shape', inplace=True)
+    object.to_pickle(folder_out+'/'+file_name+'_pkl.pkl')
+    object.to_csv(folder_out+'/'+file_name+'_csv.csv', index=False)
