@@ -1,6 +1,7 @@
 """Tensorflow-related utilities."""
 
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
+#import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 from tensorflow.contrib import training as contrib_training
 

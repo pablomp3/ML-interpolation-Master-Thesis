@@ -181,9 +181,9 @@ if create_pickle_from_songs:
         save_csv_name = save_csv_name + 1
 
 # Merge all the csv/pickle files created
-merge_pkl = True
+merge_pkl = False
 files_to_merge = 3
-merged_name = 'combined_3'
+merged_name = 'matrices_9a' #'combined_3'
 if merge_pkl:
     all_csv = sorted(os.listdir(folder_out))[:files_to_merge]
     print("files to merge:", all_csv)
@@ -199,7 +199,7 @@ if merge_pkl:
     print("all files already merged!")
 
 prepare_clean_data = True
-file_name = 'combined_clean_3'
+file_name = 'matrices_clean_9a' #'combined_clean_3'
 if prepare_clean_data:
     # pad to add to tracks in order to reach a shape of 43x44x2
     pad = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],
@@ -258,4 +258,4 @@ if prepare_clean_data:
     object.drop(columns='midi_names', inplace=True)
     object.drop(columns='matrix_shape', inplace=True)
     object.to_pickle(folder_out+'/'+file_name+'_pkl.pkl')
-    object.to_csv(folder_out+'/'+file_name+'_csv.csv', index=False)
+    #object.to_csv(folder_out+'/'+file_name+'_csv.csv', index=False)

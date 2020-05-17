@@ -12,8 +12,9 @@ import tensorflow.compat.v1 as tf
 from tensorflow.contrib import training as contrib_training'''
 
 import tensorflow.compat.v1 as tf
-from tensorflow.python.compiler.tensorrt import trt_convert as trt
+#import tensorflow as tf
 from tensorflow.contrib import training as contrib_training
+#from tensorflow.python.compiler import training as contrib_training
 from magenta.music import sequences_lib
 
 import configs
@@ -37,7 +38,7 @@ flags.DEFINE_string(
     'training and evaluation. Separate subdirectories `train` and `eval` '
     'will be created within this directory.')
 flags.DEFINE_integer(
-    'num_steps', 20000, #default 200000
+    'num_steps', 10000, #default 200000
     'Number of training steps or `None` for infinite.')
 flags.DEFINE_integer(
     'eval_num_batches', None,
@@ -362,12 +363,12 @@ CUDA_VISIBLE_DEVICES=1 python music_vae_train.py \
 '''
 # SAMPLING MELODIES
 '''
-CUDA_VISIBLE_DEVICES=0 python music_vae_generate.py \
+CUDA_VISIBLE_DEVICES=1 python music_vae_generate.py \
 --config=cat-mel_2bar_big \
---checkpoint_file=tmp/model.ckpt-200 \
+--checkpoint_file=tmp/cat-mel_2bar_big/model.ckpt-18 \
 --mode=sample \
 --num_outputs=5 \
---output_dir=tmp/generated
+--output_dir=tmp/cat-mel_2bar_big/generated
 '''
 '''
 CUDA_VISIBLE_DEVICES=1 python music_vae_generate.py \

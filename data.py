@@ -1680,6 +1680,8 @@ def get_dataset(
     dataset = dataset.map(note_sequence_augmenter.tf_augment)
 
   dataset = dataset.map(
+      #do_not_convert(
+      #tensorflow.autograph.do_not_convert(
       tf.autograph.experimental.do_not_convert(
           functools.partial(convert_to_tensors_op, converter=data_converter)),
       num_parallel_calls=tf.data.experimental.AUTOTUNE)
