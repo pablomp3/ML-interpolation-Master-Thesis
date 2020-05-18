@@ -45,7 +45,7 @@ flags.DEFINE_integer(
     'Number of batches to use during evaluation or `None` for all batches '
     'in the data source.')
 flags.DEFINE_integer(
-    'checkpoints_to_keep', 100,
+    'checkpoints_to_keep', 10, #default 100
     'Maximum number of checkpoints to keep in `train` mode or 0 for infinite.')
 flags.DEFINE_integer(
     'keep_checkpoint_every_n_hours', 1,
@@ -344,37 +344,3 @@ def console_entry_point():
 if __name__ == '__main__':
   print('yeah 1')
   console_entry_point()
-
-# BUILD TF.RECORDS FROM DATASET:
-'''
-CUDA_VISIBLE_DEVICES=1 python convert_dir_to_note_sequences.py \
-  --input_dir=final_interpolation_dataset \
-  --output_file=tmp/notesequences.tfrecord \
-  --recursive
-'''
-# SELECT GPU WHEN RUNNING FILE.py: CUDA_VISIBLE_DEVICES=1 python vae.py
-# RUN VAE
-'''
-CUDA_VISIBLE_DEVICES=1 python music_vae_train.py \
---config=cat-mel_2bar_small \
---run_dir=tmp \
---mode=train \
---examples_path=tmp/notesequences.tfrecord
-'''
-# SAMPLING MELODIES
-'''
-CUDA_VISIBLE_DEVICES=1 python music_vae_generate.py \
---config=cat-mel_2bar_big \
---checkpoint_file=tmp/cat-mel_2bar_big/model.ckpt-18 \
---mode=sample \
---num_outputs=5 \
---output_dir=tmp/cat-mel_2bar_big/generated
-'''
-'''
-CUDA_VISIBLE_DEVICES=1 python music_vae_generate.py \
---config=cat-mel_2bar_big \
---checkpoint_file=cat-mel_2bar_big.tar \
---mode=sample \
---num_outputs=5 \
---output_dir=tmp/generated
-'''

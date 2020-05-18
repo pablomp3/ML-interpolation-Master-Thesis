@@ -16,7 +16,7 @@ from magenta.models.music_vae.base_model import MusicVAE
 #from vae import MusicVAE
 import magenta.music as mm
 from tensorflow.contrib.training import HParams'''
-from vae import MusicVAE
+from base_vae import MusicVAE
 import lstm_models
 # from tf_utils import merge_hparams # function copied already so no need to import
 from hparam import HParams
@@ -94,7 +94,7 @@ CONFIG_MAP['cat-mel_2bar_big'] = Config(
     hparams=merge_hparams(
         lstm_models.get_default_hparams(),
         HParams(
-            batch_size=512,
+            batch_size=256, #orig 512
             max_seq_len=32,  # 2 bars w/ 16 steps per bar
             z_size=512,
             enc_rnn_size=[2048],

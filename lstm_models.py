@@ -23,7 +23,7 @@ import lstm_utils
 #import tensorflow.compat.v1 as tf
 from tensorflow.contrib import rnn as contrib_rnn
 from tensorflow.contrib import seq2seq as contrib_seq2seq
-import vae as base_model
+import base_vae as base_model
 from hparam import HParams
 import tensorflow_probability as tfp
 from magenta.common import flatten_maybe_padded_sequences
