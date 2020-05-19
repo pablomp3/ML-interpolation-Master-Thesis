@@ -24,6 +24,12 @@ CUDA_VISIBLE_DEVICES=1 python convert_dir_to_note_sequences.py \
   --output_file=tmp/notesequences.tfrecord \
   --recursive
 '''
+'''
+CUDA_VISIBLE_DEVICES=1 python convert_dir_to_note_sequences.py \
+  --input_dir=Pop_Music_Midi \
+  --output_file=tmp/pop_music_data/notesequences.tfrecord \
+  --recursive
+'''
 # SELECT GPU WHEN RUNNING name_example.py:
 '''
 CUDA_VISIBLE_DEVICES=1 python name_example.py
@@ -37,6 +43,13 @@ CUDA_VISIBLE_DEVICES=1 python music_vae_train.py \
 --run_dir=tmp \
 --mode=train \
 --examples_path=tmp/notesequences.tfrecord
+'''
+'''
+CUDA_VISIBLE_DEVICES=1 python music_vae_train.py \
+--config=cat-mel_2bar_big \
+--run_dir=tmp \
+--mode=train \
+--examples_path=tmp/pop_music_data/notesequences.tfrecord
 '''
 # -----------------------------------------------------
 # -- GENERATION/SAMPLING MELODIES FROM LATENT SPACE: --
@@ -75,10 +88,20 @@ CUDA_VISIBLE_DEVICES=1 python music_vae_generate.py \
 '''
 CUDA_VISIBLE_DEVICES=1 python music_vae_generate.py \
 --config=cat-mel_2bar_big \
---checkpoint_file=/path/to/music_vae/checkpoints/cat-mel_2bar.ckpt \
+--checkpoint_file=cat-mel_2bar_big/cat-mel_2bar_big.ckpt \
 --mode=interpolate \
 --num_outputs=5 \
---input_midi_1=/path/to/input/1.mid
---input_midi_2=/path/to/input/2.mid
---output_dir=/tmp/music_vae/generated
+--input_midi_1=tmp/interpolation/begin2.mid \
+--input_midi_2=tmp/interpolation/end2.mid \
+--output_dir=tmp/interpolation/generated_big_magenta
+'''
+'''
+CUDA_VISIBLE_DEVICES=1 python music_vae_generate.py \
+--config=cat-mel_2bar_small \
+--checkpoint_file=tmp/cat-mel_2bar_small/model.ckpt-20000 \
+--mode=interpolate \
+--num_outputs=5 \
+--input_midi_1=tmp/interpolation/begin1.mid \
+--input_midi_2=tmp/interpolation/end1.mid \
+--output_dir=tmp/interpolation/generated_small_20000
 '''
