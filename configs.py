@@ -60,13 +60,42 @@ def merge_hparams(hparams_1, hparams_2):
 #---------------------------------------------------------------------------------------
 
 # Melody
+# Customized CONFIG
+'''CONFIG_MAP['cat-mel_2bar_small'] = Config(
+    model=MusicVAE(lstm_models.BidirectionalLstmEncoder(),
+                   lstm_models.CategoricalLstmDecoder()),
+    hparams=merge_hparams(
+        lstm_models.get_default_hparams(),
+        HParams(
+            batch_size=128,
+            max_seq_len=32,  # 2 bars w/ 16 steps per bar
+            z_size=128,
+            enc_rnn_size=[256],
+            dec_rnn_size=[128, 128],
+            free_bits=0,
+            max_beta=0.2,
+            beta_rate=0.99999,
+            sampling_schedule='inverse_sigmoid',
+            sampling_rate=1000,
+        )),
+    note_sequence_augmenter=data.NoteSequenceAugmenter(transpose_range=(-5, 5)),
+    data_converter=data.OneHotMelodyConverter(
+        valid_programs=data.MEL_PROGRAMS,
+        skip_polyphony=False,
+        max_bars=1000,  # Truncate long melodies before slicing.
+        slice_bars=0,
+        steps_per_quarter=4),
+    train_examples_path=None,
+    eval_examples_path=None,
+)'''
+# Melody ORIG
 CONFIG_MAP['cat-mel_2bar_small'] = Config(
     model=MusicVAE(lstm_models.BidirectionalLstmEncoder(),
                    lstm_models.CategoricalLstmDecoder()),
     hparams=merge_hparams(
         lstm_models.get_default_hparams(),
         HParams(
-            batch_size=512,
+            batch_size=256,
             max_seq_len=32,  # 2 bars w/ 16 steps per bar
             z_size=256,
             enc_rnn_size=[512],

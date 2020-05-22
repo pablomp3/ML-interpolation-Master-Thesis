@@ -183,6 +183,16 @@ def run(config_map):
 
 def main(unused_argv):
   logging.set_verbosity(FLAGS.log)
+  '''dictionary = {'cat-mel_2bar_small': Config(model=<magenta.models.music_vae.base_model.MusicVAE object at 0x7f8f9f4584d0>,
+               hparams=HParams([('batch_size', 512), ('beta_rate', 0.99999), ('clip_mode', 'global_norm'), ('conditional', True),
+               ('dec_rnn_size', [256, 256]), ('decay_rate', 0.9999), ('dropout_keep_prob', 1.0), ('enc_rnn_size', [512]),
+               ('free_bits', 0), ('grad_clip', 1.0), ('grad_norm_clip_to_zero', 10000), ('learning_rate', 0.001), ('max_beta', 0.2),
+                                ('max_seq_len', 32), ('min_learning_rate', 1e-05), ('residual_decoder', False), ('residual_encoder', False),
+                                ('sampling_rate', 1000), ('sampling_schedule', 'inverse_sigmoid'), ('use_cudnn', False), ('z_size', 256)]),
+                       note_sequence_augmenter=<magenta.models.music_vae.data.NoteSequenceAugmenter object at 0x7f8f9f458510>,
+                        data_converter=<magenta.models.music_vae.data.OneHotMelodyConverter object at 0x7f8f9f458550>,
+                        train_examples_path=None, eval_examples_path=None, tfds_name=None)}'''
+  #print(configs.CONFIG_MAP)
   run(configs.CONFIG_MAP)
 
 

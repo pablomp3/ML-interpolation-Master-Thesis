@@ -11,6 +11,8 @@ tf 1.15.0
     conda uninstall tensorflow
     conda install tensorflow-gpu==1.15.0
     pip install tensorflow-gpu==1.15.0
+magenta
+    pip install magenta
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 2 - COMMANDS FOR RUNNING THE CODE:
@@ -30,6 +32,12 @@ CUDA_VISIBLE_DEVICES=1 python convert_dir_to_note_sequences.py \
   --output_file=tmp/pop_music_data/notesequences.tfrecord \
   --recursive
 '''
+'''
+CUDA_VISIBLE_DEVICES=1 python convert_dir_to_note_sequences.py \
+  --input_dir=clean_midi_reduced \
+  --output_file=tmp/dataset_clean_lahk_reduced/notesequences.tfrecord \
+  --recursive
+'''
 # SELECT GPU WHEN RUNNING name_example.py:
 '''
 CUDA_VISIBLE_DEVICES=1 python name_example.py
@@ -37,6 +45,13 @@ CUDA_VISIBLE_DEVICES=1 python name_example.py
 # -------------------------------------
 # ------------ TRAIN VAE: -------------
 # -------------------------------------
+'''
+CUDA_VISIBLE_DEVICES=1 python music_vae_train.py \
+--config=cat-mel_2bar_small \
+--run_dir=tmp \
+--mode=train \
+--examples_path=tmp/dataset_after_sim_full/notesequences.tfrecord
+'''
 '''
 CUDA_VISIBLE_DEVICES=1 python music_vae_train.py \
 --config=cat-mel_2bar_big \
@@ -49,7 +64,7 @@ CUDA_VISIBLE_DEVICES=1 python music_vae_train.py \
 --config=cat-mel_2bar_big \
 --run_dir=tmp \
 --mode=train \
---examples_path=tmp/pop_music_data/notesequences.tfrecord
+--examples_path=tmp/dataset_clean_lahk_reduced/notesequences.tfrecord
 '''
 # -----------------------------------------------------
 # -- GENERATION/SAMPLING MELODIES FROM LATENT SPACE: --
@@ -62,6 +77,15 @@ CUDA_VISIBLE_DEVICES=1 python music_vae_generate.py \
 --mode=sample \
 --num_outputs=5 \
 --output_dir=tmp/cat-mel_2bar_small/generated
+'''
+# ---------------------- small custom model
+'''
+CUDA_VISIBLE_DEVICES=1 python music_vae_generate.py \
+--config=cat-mel_2bar_small_c \
+--checkpoint_file=tmp/train/model.ckpt-100000 \
+--mode=sample \
+--num_outputs=5 \
+--output_dir=tmp/cat-mel_2bar_small_c/generated
 '''
 # ---------------------- big model
 '''
@@ -97,11 +121,21 @@ CUDA_VISIBLE_DEVICES=1 python music_vae_generate.py \
 '''
 '''
 CUDA_VISIBLE_DEVICES=1 python music_vae_generate.py \
---config=cat-mel_2bar_small \
---checkpoint_file=tmp/cat-mel_2bar_small/model.ckpt-20000 \
+--config=cat-mel_2bar_big \
+--checkpoint_file=tmp/train/model.ckpt-54029 \
 --mode=interpolate \
 --num_outputs=5 \
 --input_midi_1=tmp/interpolation/begin1.mid \
 --input_midi_2=tmp/interpolation/end1.mid \
---output_dir=tmp/interpolation/generated_small_20000
+--output_dir=tmp/interpolation/generated_big_lahk_reduced
+'''
+# --------------------------------------------------------------------
+# -- DECODING MIDI TO CHECK RECONSTRUCTION: --
+# --------------------------------------------------------------------
+'''
+CUDA_VISIBLE_DEVICES=1 python encoding_decoding.py \
+--config=cat-mel_2bar_big \
+--checkpoint_file=cat-mel_2bar_big/cat-mel_2bar_big.ckpt \
+--input_midi_1=tmp/interpolation/begin1.mid \
+--output_dir=tmp/decoding/decoding_big_magenta
 '''
