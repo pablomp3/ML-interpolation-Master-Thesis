@@ -2,11 +2,13 @@ import torch
 import analyze
 import models
 from torchvision.utils import save_image
+import utils
 from torchvision import transforms
 from torchvision.transforms.functional import crop
 import preprocess as prep
 import numpy as np
 import numpy
+import matplotlib.pyplot as plt
 import midi
 from PIL import Image
 from midi_state_conversion import midiToNoteStateMatrix
@@ -51,16 +53,19 @@ def get_ims(im_ids): #['00001.jpg']
 generate = False
 load_midi_and_convert = False
 encoding_decoding_photo = False
-encoding_decoding_song = True
+encoding_decoding_song = False
 interpolating_photo = False
 interpolating_song = False
+interpolating_flow = True
+plot_loss_plot = False
 # --------------------------------------------------------
 # --------------------------------------------------------
 # --------------------------------------------------------
 
-USE_CUDA = True
+USE_CUDA = False
 #MODEL = 'dfc-300'
-MODEL = 'pablo'
+MODEL = 'pablo_full_data_4000'
+#MODEL = 'pablo_full_200'
 IMAGE_PATH = 'checkpoints/'
 MODEL_PATH = './checkpoints/' + MODEL
 LOG_PATH = './logs/' + MODEL + '/log.pkl'
@@ -227,21 +232,10 @@ if interpolating_photo:
     save_image(inter1, 'checkpoints/interpolate-dfc.png', padding=0, nrow=10)
 
 if interpolating_song:
-    '''photo = ['000001.jpg', '000002.jpg']
-    photo = get_ims(photo)
-    print("input specs to encoder_decoder:", type(photo[0]), photo[0].shape)  # class torch.tensor, size [3,64,64]
-    print(photo[0])
-    print("input specs to encoder_decoder:", type(photo[1]), photo[1].shape)  # class torch.tensor, size [3,64,64]
-    print(photo[1])
 
-    inter1 = analyze.linear_interpolate(photo[0], photo[1], model, device)
-    save_image(inter1, 'checkpoints/interpolate-dfc.png', padding=0, nrow=10)'''
-
-    folder_name = 'checkpoints/test'
-    #song_name_1 = '0a1b7f59058eb2fba0a5bf43295c638d_11328.midi_12_3.midi'
-    #song_name_2 = '0a4090c28d930bd10d3b58ae69e9f2f1_14597.midi_1_2.midi'
-    song_name_1 = 'ff61238332977860aaa35023ca5e0732_9944.midi_4_1.midi'
-    song_name_2 = 'ff61238332977860aaa35023ca5e0732_9944.midi_4_3.midi'
+    folder_name = 'final_interpolation_dataset_unseen'
+    song_name_1 = 'fe991a0954c5194c75037fe571061c6b_12490.midi_5_1.midi'
+    song_name_2 = 'fe991a0954c5194c75037fe571061c6b_12490.midi_5_3.midi'
     target_length = 64
     pad = pad_64x2
     # ---------------------------------------------------------#
@@ -253,7 +247,10 @@ if interpolating_song:
     state_1 = midiToNoteStateMatrix(folder_name + '/' + song_name_1)  # shape 43x64x2
     state_2 = midiToNoteStateMatrix(folder_name + '/' + song_name_2)  # shape 43x64x2
     state_1 = padStateMatrix(folder_name, song_name_1, target_length, pad, save_as_midi=False)  # shape 64x64x2
+    state_1_last = state_1[0:42]
     state_2 = padStateMatrix(folder_name, song_name_2, target_length, pad, save_as_midi=False)  # shape 64x64x2
+    state_2_last = state_2[0:42]
+    #print(state_2[40])
 
     '''prove that is possible reshape [64, 64, 2] to [2, 64, 64] for feeding the NN
     and then reshaping to [64, 64, 2] in order to convert the tensor back to midi'''
@@ -261,11 +258,8 @@ if interpolating_song:
     state_2 = np.einsum('ijk->kij', state_2)  # shape 2x64x64
     state_1 = state_1.astype(np.float32)  # set to float in order to keep data consistency
     state_2 = state_2.astype(np.float32)  # set to float in order to keep data consistency
-    print("reshaped to:", type(state_1), state_1.shape)
-    print(state_1)
-    # nump_song = np.einsum('kij->ijk', nump_song) # shape 64x64x2 (as original)
-    # print("reshaped to:", type(nump_song), nump_song.shape)
-    # noteStateMatrixToMidi(nump_song, folder_name + '/' + 'reshaped_' + song_name) # save as midi
+    #print("reshaped to:", type(state_1), state_1.shape)
+    #print(state_1)
 
     ''' input image to be encoded and decoded is
                 torch tensor of [3, 64, 64] --> [78, 78, 2]'''
@@ -278,44 +272,162 @@ if interpolating_song:
     '''
     state_1 = torch.from_numpy(state_1)  # convert state: numpy array to torch tensor
     state_2 = torch.from_numpy(state_2)  # convert state: numpy array to torch tensor
-    print("numpy to torch tensor:")
-    print(state_1)
-    print("song to encode:", type(state_1), state_1.shape)
+    #print("numpy to torch tensor:")
+    #print(state_1)
+    #print("song to encode:", type(state_1), state_1.shape)
 
     inter1 = analyze.linear_interpolate(state_1, state_2, model, device)
     k = 0
+    #total_np = np.empty()
     for t in inter1:
+        print(k)
         print(t.numpy().shape, type(t.numpy())) #numpy array of size (3, 64, 64) each
         nump_song = t.numpy()
         #print("reshaped to:", type(nump_song), nump_song.shape)
         nump_song = np.einsum('kij->ijk', nump_song)  # shape 64x64x2 (as original)
         print("reshaped to:", type(nump_song), nump_song.shape)
-        #print(nump_song)
-        noteStateMatrixToMidi(nump_song, folder_name + '/' + 'interp_' + str(k) + '_' + song_name_1)  # save as midi
-        #noteStateMatrixToMidi(nump_song, folder_name + '/' + '2_interp_' + str(k) + song_name_1)  # save as midi
+        nump_song = nump_song[0:42]
+        nump_song[nump_song >= .35] = 1
+        nump_song[nump_song < .35] = 0
+        #print(nump_song[40])
+        if k==0:
+            total_np = nump_song
+        else:
+            total_np = np.concatenate((total_np, nump_song), axis=0)
+        print(total_np.shape)
+
         k+=1
-        print(k)
+    print("last:",total_np.shape)
+    total_np = np.concatenate((state_1_last, total_np), axis=0)
+    total_np = np.concatenate((total_np, state_2_last), axis=0)
+    #print(total_np[30])
+    noteStateMatrixToMidi(total_np, folder_name + '/' + song_name_1 + '_interp_' + str(k))  # save as midi
 
-
-    '''encoded_song = analyze.get_z(state, model, device)
-    print(state)
-    print("encoded song z:", type(encoded_song), encoded_song.shape)
-    print(encoded_song)
+if interpolating_flow:
+    folder_name = 'final_interpolation_dataset_unseen'
+    song_name_1 = '4d304a5af6078632e2ea610a22c1f84d_2727.midi_5_1.midi'
+    song_name_2 = '4d304a5af6078632e2ea610a22c1f84d_2727.midi_5_3.midi'
+    target_length = 64
+    pad = pad_64x2
+    # ---------------------------------------------------------#
+    # target_length #  pad   # lowerBound # upperBound # span #
+    #     44         pad_44x2      36           80        44  #
+    #     64         pad_64x2      28           92        64  #
+    #     78         pad_78x2      22           100       78  #
+    # ---------------------------------------------------------#
+    state_1 = midiToNoteStateMatrix(folder_name + '/' + song_name_1)  # shape 43x64x2
+    state_2 = midiToNoteStateMatrix(folder_name + '/' + song_name_2)  # shape 43x64x2
+    state_1 = padStateMatrix(folder_name, song_name_1, target_length, pad, save_as_midi=False)  # shape 64x64x2
+    state_1_last = state_1[0:42]
+    state_2 = padStateMatrix(folder_name, song_name_2, target_length, pad, save_as_midi=False)  # shape 64x64x2
+    state_2_last = state_2[0:42]
+    #print(state_2[40])
+    state_1 = np.einsum('ijk->kij', state_1)  # shape 2x64x64
+    state_2 = np.einsum('ijk->kij', state_2)  # shape 2x64x64
+    state_1 = state_1.astype(np.float32)  # set to float in order to keep data consistency
+    state_2 = state_2.astype(np.float32)  # set to float in order to keep data consistency
+    state_1 = torch.from_numpy(state_1)  # convert state: numpy array to torch tensor
+    state_2 = torch.from_numpy(state_2)  # convert state: numpy array to torch tensor
 
     model.eval()
-    with torch.no_grad():
-        decoded_song = model.decode(encoded_song).cpu()
-    # decoded_song = model.decode(encoded_song)
-    print("decoded song:", type(decoded_song), decoded_song.shape)
-    print(decoded_song)
+    z1 = analyze.get_z(state_1, model, device)
+    print("z1:", z1, z1.shape, type(z1))
+    z1 = z1.numpy()
+    print("z1:", z1, z1.shape, type(z1))
+    z2 = analyze.get_z(state_2, model, device)
+    z2 = z2.numpy()
+    #print("z2:", z2, z2.shape)
 
-    nump_song = decoded_song.cpu().numpy()
-    print("reshaped to:", type(nump_song), nump_song.shape)
-    print(nump_song)
-    nump_song = np.squeeze(nump_song)
-    print(nump_song)
-    print("squeezed to:", type(nump_song), nump_song.shape)
-    nump_song = np.einsum('kij->ijk', nump_song)  # shape 64x64x2 (as original)
-    print("reshaped to:", type(nump_song), nump_song.shape)
-    print(nump_song)
-    noteStateMatrixToMidi(nump_song, folder_name + '/' + 'reshaped_3' + song_name)  # save as midi'''
+    matrix_1 = 0.5*np.ones((100,100))
+
+    #factors = np.linspace(0.9, 0.1, num=1)  # 10, #numpy array [1, num] with ranges between 0~1
+    factors = [0.5]
+    # print(type(factors))
+    print("factors", factors)
+    result = []
+
+    with torch.no_grad():
+
+        for f in factors:
+            #z = (f * z1 + (1 - f) * z2).to(device) # z class = torch tensor
+            z = (np.matmul(z1, matrix_1) + np.matmul(z2, matrix_1))
+            print("z:", z, z.shape, type(z))
+            z = z.astype(np.float32)  # set to float in order to keep data consistency
+            print("z:", z, z.shape, type(z))
+            z = torch.from_numpy(z)
+            print("z:", z, z.shape, type(z))
+            im = torch.squeeze(model.decode(z))
+            #im = torch.squeeze(model.decode(z).cpu())
+            result.append(im)
+
+    k = 0
+    for t in result:
+        print("k:", k)
+        print(t.numpy().shape, type(t.numpy())) #numpy array of size (3, 64, 64) each
+        nump_song = t.numpy()
+        #print("reshaped to:", type(nump_song), nump_song.shape)
+        nump_song = np.einsum('kij->ijk', nump_song)  # shape 64x64x2 (as original)
+        print("reshaped to:", type(nump_song), nump_song.shape)
+        nump_song = nump_song[0:42]
+        nump_song[nump_song >= .35] = 1
+        nump_song[nump_song < .35] = 0
+        #print(nump_song[40])
+        if k==0:
+            total_np = nump_song
+        else:
+            total_np = np.concatenate((total_np, nump_song), axis=0)
+        print(total_np.shape)
+
+        k+=1
+
+    print("last:",total_np.shape)
+    total_np = np.concatenate((state_1_last, total_np), axis=0)
+    total_np = np.concatenate((total_np, state_2_last), axis=0)
+    print(total_np.shape)
+    noteStateMatrixToMidi(total_np, folder_name + '/A_FLOW_' + song_name_1 + '_interp_' + str(k))  # save as midi
+
+
+
+if plot_loss_plot:
+    train_losses, test_losses = utils.read_log(LOG_PATH, ([], []))
+    #print(train_losses)
+    #print(test_losses)
+    train_x, train_l = zip(*train_losses)
+    test_x, test_l = zip(*test_losses)
+    print(train_x)
+    print(len(train_x))
+    print(train_l)
+    print(len(train_l))
+    print(len(test_x))
+    print(len(test_l))
+    '''
+    for i in range(0,688):
+        train_x = list(train_x)
+        train_l = list(train_l)
+        test_x = list(test_x)
+        test_l = list(test_l)
+        train_x.pop(0)
+        train_l.pop(0)
+        test_x.pop(0)
+        test_l.pop(0)
+    '''
+    train_x = train_x[12143:16143] #+ train_x[10688:]
+    train_l = train_l[12143:16143]  # + train_x[10688:]
+    test_x = test_x[12143:16143]  # + train_x[10688:]
+    test_l = test_l[12143:16143]  # + train_x[10688:]
+
+    print(len(train_x))
+    print(train_x)
+    print(len(train_l))
+    print(len(test_x))
+    print(len(test_l))
+
+    plt.figure()
+    plt.title('Train Loss vs. Test Loss')
+    plt.xlabel('episodes')
+    plt.ylabel('loss')
+    plt.plot(train_x, train_l, 'b', label='train_loss')
+    plt.plot(test_x, test_l, 'r', label='test_loss')
+    plt.legend()
+    plt.show()
+    #analyze.plot_loss(train_losses, test_losses, PLOT_PATH)

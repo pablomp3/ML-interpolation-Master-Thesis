@@ -39,11 +39,14 @@ def get_z(im, model, device):
 def linear_interpolate(im1, im2, model, device):
     model.eval()
     z1 = get_z(im1, model, device)
+    print("z1:", z1, z1.shape)
     z2 = get_z(im2, model, device)
+    print("z2:", z2, z2.shape)
 
-    factors = np.linspace(1, 0, num=3) #10, #numpy array [1, num] with ranges between 0~1
+    factors = np.linspace(0.9, 0.1, num=1) #10, #numpy array [1, num] with ranges between 0~1
+    factors = [0.5]
     #print(type(factors))
-    #print(factors)
+    print("factors", factors)
     result = []
 
     with torch.no_grad():
@@ -54,6 +57,14 @@ def linear_interpolate(im1, im2, model, device):
             result.append(im)
 
     return result
+
+def flow_interpolate(im1, im2, model, device):
+    model.eval()
+    z1 = get_z(im1, model, device)
+    z1 = z1.T
+    print("z1:", z1, z1.shape)
+
+
 
 
 def get_average_z(ims, model, device):

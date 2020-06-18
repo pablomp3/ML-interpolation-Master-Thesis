@@ -54,9 +54,9 @@ pad_78x2 = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 
 mini_pad = [[0,0]]
 # --------------
 check_gpu = False
-fix_data = True
+fix_data = False
 directly_feed_data_in = False
-training = False
+training = True
 remove_duplicates = False
 target_length = 64 #64 #default = 44
 pad = (pad_64x2) #default = pad_44x2
@@ -182,69 +182,27 @@ if directly_feed_data_in:
         song = midiToNoteStateMatrix(folder_in + "/" + directory[i])
         print("song: ", type(song), np.asarray(song).shape, np.asarray(song)[0].shape)
 
-# MNIST dataset
 '''
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-print("x_train", type(x_train), x_train.shape, "y_train", type(y_train), y_train.shape, "x_test", type(x_test), x_test.shape, "y_test", type(y_test), y_test.shape)
-image_size = x_train.shape[1] #28 #change by
-original_dim = image_size * image_size #28x28 #change by 43x44x2
-original_dim_new = 44*44*2
-'''
-
-'''feed_in = np.random.shuffle(feed_in)
-percent_split_80 = int(len(directory)*0.8)
-print("split:", percent_split_80)'''
-
-np.save(folder_in_np + '/data[50000:].npy', feed_in) # save
-#feed_in = np.load(folder_in_np + '/data.npy') # load
+#np.save(folder_in_np + '/data[50000:].npy', feed_in) # save
+feed_in = np.load(folder_in_np + '/1_data[:50000].npy') # load
 print(type(feed_in), feed_in.shape)
-print("AWESOME DATA")
-#feed_in_2 = np.load(folder_in_np + '/data2.npy') # load
-#print(type(feed_in_2), feed_in_2.shape)
+print("AWESOME DATA 1")
+feed_in_2 = np.load(folder_in_np + '/2_data[50000:].npy') # load
+print(type(feed_in_2), feed_in_2.shape)
 print("AWESOME DATA 2")
-#new_feed = np.concatenate((feed_in, feed_in_2), axis=0)
-#print(type(new_feed), new_feed.shape)
+new_feed = np.concatenate((feed_in, feed_in_2), axis=0)
+print(type(new_feed), new_feed.shape)
 
-#np.random.shuffle(new_feed)
-#x_train_new, x_test_new = train_test_split(new_feed, test_size=0.05, random_state=42)
+np.random.shuffle(new_feed)
+x_train_new, x_test_new = train_test_split(new_feed, test_size=0.05, random_state=42)
+np.save(folder_in_np + '/data_train_0.95.npy', x_train_new) # save
+np.save(folder_in_np + '/data_test_0.05.npy', x_test_new) # save
 '''
-percent_split_80 = int(len(directory)*0.8)
-print("split:", percent_split_80)
-
-x_train_new = feed_in[:percent_split_80]
-print("x_train_new", x_train_new.shape)
-x_test_new = feed_in[percent_split_80:]
-print("x_test_new", x_test_new.shape)
-'''
+x_train_new = np.load(folder_in_np + '/data_train_0.95.npy') # load
+x_test_new = np.load(folder_in_np + '/data_test_0.05.npy') # load
 print("x_train_new", x_train_new.shape)
 print("x_test_new", x_test_new.shape)
-'''
-x_train = np.reshape(x_train, [-1, original_dim])
-x_train_new = np.reshape(x_train_new, [-1, original_dim_new])
-print("x_train", x_train.shape, type(x_train))
-print("x_train_new", x_train_new.shape, type(x_train_new))
-#print(x_train[0])
-x_test = np.reshape(x_test, [-1, original_dim])
-x_test_new = np.reshape(x_test_new, [-1, original_dim_new])
-print("x_test", x_test.shape)
-print("x_test_new", x_test_new.shape)
-#print(x_train[0])
-x_train = x_train.astype('float32') / 255 #normalization
-x_test = x_test.astype('float32') / 255
 
-x_train = x_train_new
-x_test = x_test_new
-'''
-
-'''
-#x_train_new = np.ones((200,3,64,64))
-#x_train_new = np.ones((200,2,64,64))
-x_train_new = feed_in
-print("x_train_new test w/ np.ones", x_train_new.shape)
-#x_train_new = np.ones((200,2,44,44))
-x_train_new = x_train_new.astype(np.float32)
-print("x_train_new test w/ np.ones", x_train_new.shape)
-'''
 #-----------------------------------------------------------------------------------------------------------------------
 # CelebA (VAE)
 # Input 64x64x3.
@@ -316,10 +274,10 @@ if training:
     # parameters
     BATCH_SIZE = 256
     TEST_BATCH_SIZE = 10
-    EPOCHS = 10000 #400
+    EPOCHS = 100 #400
 
     LATENT_SIZE = 100
-    LEARNING_RATE = 1e-3
+    LEARNING_RATE = 1e-3 #1e-3
 
     USE_CUDA = True
     PRINT_INTERVAL = 100
