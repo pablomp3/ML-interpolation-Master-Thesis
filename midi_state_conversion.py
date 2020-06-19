@@ -16,7 +16,7 @@ def padStateMatrix(folder_name, song_name, target_length, pad, save_as_midi=Fals
     song_path = folder_name + '/' + song_name
     pad = np.asarray(pad)
     song = midiToNoteStateMatrix(song_path)
-    print("midi song:", type(song), np.asarray(song).shape) #, np.asarray(song)[0].shape)
+    #print("midi song:", type(song), np.asarray(song).shape) #, np.asarray(song)[0].shape)
     if np.shape(song)[0] > target_length:  # or np.shape(song)[0] < 33: #delete file
         print("file to delete")
         delete.append(directory[i])
@@ -24,11 +24,11 @@ def padStateMatrix(folder_name, song_name, target_length, pad, save_as_midi=Fals
         while np.shape(song)[0] < target_length:
             song.append(pad)
         padded.append(song_name)
-    print("final padded midi song:", np.shape(song), type(song))
+    #print("final padded midi song:", np.shape(song), type(song))
     if save_as_midi:
         noteStateMatrixToMidi(np.asarray(song), name=(folder_name + '/new_pad_' + str(target_length) + '_'+ song_name))
         print("saved as new song")
-    print("returned: ", type(np.asarray(song)), np.asarray(song).shape)
+    #print("returned: ", type(np.asarray(song)), np.asarray(song).shape)
     return np.asarray(song)
 
 
