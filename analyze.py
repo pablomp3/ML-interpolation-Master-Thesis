@@ -53,6 +53,8 @@ def linear_interpolate(im1, im2, model, device):
 
         for f in factors:
             z = (f * z1 + (1 - f) * z2).to(device)
+            print("Z FEATURES:")
+            print(type(z), z.shape)
             im = torch.squeeze(model.decode(z).cpu())
             result.append(im)
 
@@ -130,7 +132,7 @@ print('Using device', device)
 model = models.DFCVAE(latent_size=LATENT_SIZE).to(device)
 print('latent size:', model.latent_size)
 
-attr_map, id_attr_map = prep.get_attributes()
+#attr_map, id_attr_map = prep.get_attributes()
 
 if __name__ == "__main__":
 

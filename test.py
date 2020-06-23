@@ -56,13 +56,14 @@ encoding_decoding_photo = False
 encoding_decoding_song = False
 interpolating_photo = False
 interpolating_song = False
-interpolating_flow = True
+interpolating_flow = False
 plot_loss_plot = False
+evaluation = True
 # --------------------------------------------------------
 # --------------------------------------------------------
 # --------------------------------------------------------
 
-USE_CUDA = False
+USE_CUDA = True
 #MODEL = 'dfc-300'
 MODEL = 'pablo_full_data_4000'
 #MODEL = 'pablo_full_200'
@@ -336,7 +337,7 @@ if interpolating_flow:
     print("z1:", z1, z1.shape, type(z1))
     z2 = analyze.get_z(state_2, model, device)
     z2 = z2.numpy()
-    #print("z2:", z2, z2.shape)
+    print("z2:", z2, z2.shape)
 
     matrix_1 = 0.5*np.ones((100,100))
 
