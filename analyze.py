@@ -39,22 +39,22 @@ def get_z(im, model, device):
 def linear_interpolate(im1, im2, model, device):
     model.eval()
     z1 = get_z(im1, model, device)
-    print("z1:", z1, z1.shape)
+    #print("z1:", z1, z1.shape)
     z2 = get_z(im2, model, device)
-    print("z2:", z2, z2.shape)
+    #print("z2:", z2, z2.shape)
 
     factors = np.linspace(0.9, 0.1, num=1) #10, #numpy array [1, num] with ranges between 0~1
     factors = [0.5]
     #print(type(factors))
-    print("factors", factors)
+    #print("factors", factors)
     result = []
 
     with torch.no_grad():
 
         for f in factors:
             z = (f * z1 + (1 - f) * z2).to(device)
-            print("Z FEATURES:")
-            print(type(z), z.shape)
+            #print("Z FEATURES:")
+            #print(type(z), z.shape)
             im = torch.squeeze(model.decode(z).cpu())
             result.append(im)
 

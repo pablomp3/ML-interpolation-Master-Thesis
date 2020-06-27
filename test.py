@@ -1,4 +1,6 @@
 import torch
+import tensorflow.compat.v1 as tf
+import os
 import analyze
 import models
 from torchvision.utils import save_image
@@ -53,12 +55,13 @@ def get_ims(im_ids): #['00001.jpg']
 generate = False
 load_midi_and_convert = False
 encoding_decoding_photo = False
-encoding_decoding_song = False
+encoding_decoding_song = True
 interpolating_photo = False
 interpolating_song = False
 interpolating_flow = False
 plot_loss_plot = False
-evaluation = True
+evaluation_midi = False
+evaluation_z = False
 # --------------------------------------------------------
 # --------------------------------------------------------
 # --------------------------------------------------------
@@ -166,8 +169,8 @@ if encoding_decoding_song:
     shape [64, 64, 2] and reconstructed back to midi'''
     prove_reshape_to_midi = False
 
-    folder_name = 'checkpoints/test'
-    song_name = 'ff61238332977860aaa35023ca5e0732_9944.midi_4_1.midi'
+    folder_name = 'final_interpolation_dataset_unseen'
+    song_name = 'fa75976c219a9572aa75fa648d30059f_3781.midi_5_1.midi'
 
     target_length = 64
     pad = pad_64x2
@@ -211,9 +214,13 @@ if encoding_decoding_song:
     #print(nump_song)
     print("squeezed to:", type(nump_song), nump_song.shape)
     nump_song = np.einsum('kij->ijk', nump_song) # shape 64x64x2 (as original)
+    nump_song = nump_song[0:42]
+    nump_song[nump_song >= .3] = 1
+    nump_song[nump_song < .3] = 0
     print("reshaped to:", type(nump_song), nump_song.shape)
     print(nump_song[10])
     noteStateMatrixToMidi(nump_song, folder_name + '/' + 'reshaped_3' + song_name) # save as midi
+
 
 if interpolating_photo:
     ''' input image to be encoded and decoded is
@@ -432,3 +439,339 @@ if plot_loss_plot:
     plt.legend()
     plt.show()
     #analyze.plot_loss(train_losses, test_losses, PLOT_PATH)
+
+if evaluation_midi:
+    # with graph.as_default():
+    tf.reset_default_graph()
+    with tf.Session() as session:
+
+        # declare the training data placeholders
+        # input z1 = begining encoded track (1,100)
+        z1 = tf.placeholder(tf.float32, [None, 1, 100], name='z1')
+        # input z2 = end encoded track (1,100)
+        z2 = tf.placeholder(tf.float32, [None, 1, 100], name='z2')
+        # output z = interpolation encoded track (1,100)
+        z = tf.placeholder(tf.float32, [None, 1, 100], name='z')
+
+        # now declare the weights connecting the input to the hidden layer to output
+        h1_1 = tf.Variable(tf.random_normal([100, 100], stddev=0.35), name="h1_1")
+        h1_2 = tf.Variable(tf.random_normal([100, 100], stddev=0.35), name="h1_2")
+        b1 = tf.Variable(tf.random_normal([100]), name='b1')
+
+        h2 = tf.Variable(tf.random_normal([100, 100], stddev=0.35), name="h2")
+        b2 = tf.Variable(tf.random_normal([100]), name='b2')
+
+        h3 = tf.Variable(tf.random_normal([100, 100], stddev=0.35), name="h3")
+        b3 = tf.Variable(tf.random_normal([100]), name='b3')
+
+        h4 = tf.Variable(tf.random_normal([100, 100], stddev=0.35), name="h4")
+        b4 = tf.Variable(tf.random_normal([100]), name='b4')
+
+        # output layer
+        # z_pred = tf.linalg.matmul(z1,h1) + tf.linalg.matmul(z2,h2)
+        hidden_sum = tf.add(tf.matmul(z1, h1_1), tf.matmul(z2, h1_2))  # z1*h1 + z2*h2 == [1, 100] + [1, 100] = [1, 100]
+        hidden_mid_1 = tf.add(hidden_sum, b1)  # hidden_out = (z1*h1 + z2*h2) + b1 == [1, 100]
+        hidden_mid_1 = tf.nn.tanh(hidden_mid_1)  # [1, 100]
+
+        hidden_mid_2 = tf.add(tf.matmul(hidden_mid_1, h2), b2)
+        hidden_mid_2 = tf.nn.tanh(hidden_mid_2)
+
+        hidden_mid_3 = tf.add(tf.matmul(hidden_mid_2, h3), b3)
+        hidden_mid_3 = tf.nn.tanh(hidden_mid_3)
+
+        hidden_final = tf.add(tf.matmul(hidden_mid_3, h4),
+                              b4)  # , tf.matmul(z2, h2_2))  # z1*h1 + z2*h2 == [1, 100] + [1, 100] = [1, 100]
+        # hidden_out_2 = tf.matmul(hidden_out, h2_1) #, tf.matmul(z2, h2_2))  # z1*h1 + z2*h2 == [1, 100] + [1, 100] = [1, 100]
+        z_pred = tf.nn.leaky_relu(hidden_final)  # 0.91
+
+        # Add ops to save and restore all the variables.
+        saver = tf.train.Saver()
+        # Restore variables from disk.
+        saver.restore(session, 'flow_songs/ANN_model_2000.ckpt')
+        print("Model restored.")
+
+        folder_name = 'final_interpolation_dataset_unseen'
+        directory = sorted(os.listdir(folder_name))[:]
+        mse_original_naive_arr = [] #store mse values
+        mse_original_flow_arr = []
+
+        for j in range(0,30):
+            for h in range(0,len(directory)):
+                #print("modulus", h%3)
+                if h%3==0:
+                    #print(directory[h])
+                    song_name_1 = directory[h]
+                    interp_real = directory[h+1]
+                    song_name_2 = directory[h+2]
+                    #print(interp_real)
+                    #print(song_name_2)
+            #song_name_1 = '947aecbf5e48d5ee7282abe1b815bb86_2173.midi_18_1.midi'
+            #interp_real = '947aecbf5e48d5ee7282abe1b815bb86_2173.midi_18_2.midi'
+            #song_name_2 = '947aecbf5e48d5ee7282abe1b815bb86_2173.midi_18_3.midi'
+                    target_length = 64
+                    pad = pad_64x2
+                    # ---------------------------------------------------------#
+                    # target_length #  pad   # lowerBound # upperBound # span #
+                    #     44         pad_44x2      36           80        44  #
+                    #     64         pad_64x2      28           92        64  #
+                    #     78         pad_78x2      22           100       78  #
+                    # ---------------------------------------------------------#
+                    state_1 = midiToNoteStateMatrix(folder_name + '/' + song_name_1)  # shape 43x64x2
+                    state_2 = midiToNoteStateMatrix(folder_name + '/' + song_name_2)  # shape 43x64x2
+                    state_3 = midiToNoteStateMatrix(folder_name + '/' + interp_real)  # shape 43x64x2
+                    state_1 = padStateMatrix(folder_name, song_name_1, target_length, pad, save_as_midi=False)  # shape 64x64x2
+                    state_1_last = state_1[0:42]
+                    state_2 = padStateMatrix(folder_name, song_name_2, target_length, pad, save_as_midi=False)  # shape 64x64x2
+                    state_2_last = state_2[0:42]
+                    state_3 = padStateMatrix(folder_name, interp_real, target_length, pad, save_as_midi=False)  # shape 64x64x2
+                    state_3_last = state_3[0:42]
+
+                    # print(state_2[40])
+                    state_1 = np.einsum('ijk->kij', state_1)  # shape 2x64x64
+                    state_2 = np.einsum('ijk->kij', state_2)  # shape 2x64x64
+                    state_3 = np.einsum('ijk->kij', state_3)  # shape 2x64x64
+                    state_1 = state_1.astype(np.float32)  # set to float in order to keep data consistency
+                    state_2 = state_2.astype(np.float32)  # set to float in order to keep data consistency
+                    state_3 = state_3.astype(np.float32)  # set to float in order to keep data consistency
+                    state_1 = torch.from_numpy(state_1)  # convert state: numpy array to torch tensor
+                    state_2 = torch.from_numpy(state_2)  # convert state: numpy array to torch tensor
+                    state_3 = torch.from_numpy(state_3)  # convert state: numpy array to torch tensor
+
+                    model.eval()
+                    z1_example = analyze.get_z(state_1, model, device)
+                    # print("z1_example:", z1_example, z1_example.shape, type(z1_example))
+                    z1_example = z1_example.cpu().numpy()
+                    z1_example = np.expand_dims(z1_example, axis=0)
+                    #print("z1_example:", z1_example, z1_example.shape, type(z1_example))
+                    z2_example = analyze.get_z(state_2, model, device)
+                    z2_example = z2_example.cpu().numpy()
+                    z2_example = np.expand_dims(z2_example, axis=0)
+                    # print("z2_example:", z2_example, z2_example.shape)
+                    z3_example = analyze.get_z(state_3, model, device)
+                    z3_example = z3_example.cpu().numpy()
+                    z3_example = np.expand_dims(z3_example, axis=0)
+
+                    feed_dict = {z1: z1_example, z2: z2_example}
+                    interp_encoded = session.run(z_pred, feed_dict)
+                    #print("PREDICTION:")
+                    #print(interp_encoded)  # np array (1,1,100) --> to class torch ([1, 100])
+                    interp_encoded = np.squeeze(interp_encoded, axis=0)  # np array (1,100)
+                    #print("features:", type(interp_encoded), interp_encoded.shape)
+                    interp_encoded = torch.from_numpy(interp_encoded).to(device)  # torch tensor
+                    #print("features:", type(interp_encoded), interp_encoded.shape)
+                    #print("REAL INTERP Z")
+                    #print(z3_example)
+
+                    #--------------------------------------------------
+                    midi_threshold = .4
+                    #--------------------------------------------------
+
+                    result = []
+                    model.eval()
+                    with torch.no_grad():
+                        # im = torch.squeeze(model.decode(interp_encoded).cpu())
+                        im = torch.squeeze(model.decode(interp_encoded).cpu())
+                        result.append(im)
+                    k = 0
+                    for t in result:
+                        #print(k)
+                        #print(t.numpy().shape, type(t.numpy()))  # numpy array of size (3, 64, 64) each
+                        nump_song = t.numpy()
+                        # print("reshaped to:", type(nump_song), nump_song.shape)
+                        nump_song = np.einsum('kij->ijk', nump_song)  # shape 64x64x2 (as original)
+                        #print("reshaped to:", type(nump_song), nump_song.shape)
+                        nump_song = nump_song[0:42]
+                        nump_song[nump_song >= midi_threshold] = 1
+                        nump_song[nump_song < midi_threshold] = 0
+                        # print(nump_song[40])
+                        if k == 0:
+                            total_np = nump_song
+                        else:
+                            total_np = np.concatenate((total_np, nump_song), axis=0)
+                        #print(total_np.shape)
+
+                        k += 1
+                    #print("flow:", total_np.shape) #flow interpolating np --> comparison 2 (42x64x2)
+                    flow_interpolation_np = total_np
+
+                    # NAIVE INTERPOLATION
+                    #print("NAIVE")
+                    inter1 = analyze.linear_interpolate(state_1, state_2, model, device)
+                    k = 0
+                    # total_np = np.empty()
+                    for t in inter1:
+                        #print(k)
+                        #print(t.numpy().shape, type(t.numpy()))  # numpy array of size (3, 64, 64) each
+                        nump_song = t.numpy()
+                        # print("reshaped to:", type(nump_song), nump_song.shape)
+                        nump_song = np.einsum('kij->ijk', nump_song)  # shape 64x64x2 (as original)
+                        #print("reshaped to:", type(nump_song), nump_song.shape)
+                        nump_song = nump_song[0:42]
+                        nump_song[nump_song >= midi_threshold] = 1
+                        nump_song[nump_song < midi_threshold] = 0
+                        # print(nump_song[40])
+                        if k == 0:
+                            total_np = nump_song
+                        else:
+                            total_np = np.concatenate((total_np, nump_song), axis=0)
+                        #print(total_np.shape)
+
+                        k += 1
+                    #print("naive:", total_np.shape)  # flow interpolating np --> comparison 2 (42x64x2)
+                    naive_interpolation_np = total_np
+
+                    #print("original:", state_3_last.shape)  # flow interpolating np --> comparison 2 (42x64x2)
+
+                    mse_naive_original = (np.square(state_3_last - naive_interpolation_np)).mean(axis=None)
+                    mse_original_naive_arr.append(mse_naive_original)
+                    #print("MSE original vs naive interpolation", mse_naive_original)
+                    mse_flow_original = (np.square(state_3_last - flow_interpolation_np)).mean(axis=None)
+                    mse_original_flow_arr.append(mse_flow_original)
+                    #print("MSE original vs flow interpolation ", mse_flow_original)
+                    print(j, "/ 30")
+        print("metric averaged", len(mse_original_naive_arr), "and", len(mse_original_flow_arr), "times")
+        print("averaged MSE original vs naive interpolation", sum(mse_original_naive_arr)/len(mse_original_naive_arr))
+        print("averaged MSE original vs flow interpolation", sum(mse_original_flow_arr)/len(mse_original_flow_arr))
+
+if evaluation_z:
+    # with graph.as_default():
+    tf.reset_default_graph()
+    with tf.Session() as session:
+
+        # declare the training data placeholders
+        # input z1 = begining encoded track (1,100)
+        z1 = tf.placeholder(tf.float32, [None, 1, 100], name='z1')
+        # input z2 = end encoded track (1,100)
+        z2 = tf.placeholder(tf.float32, [None, 1, 100], name='z2')
+        # output z = interpolation encoded track (1,100)
+        z = tf.placeholder(tf.float32, [None, 1, 100], name='z')
+
+        # now declare the weights connecting the input to the hidden layer to output
+        h1_1 = tf.Variable(tf.random_normal([100, 100], stddev=0.35), name="h1_1")
+        h1_2 = tf.Variable(tf.random_normal([100, 100], stddev=0.35), name="h1_2")
+        b1 = tf.Variable(tf.random_normal([100]), name='b1')
+
+        h2 = tf.Variable(tf.random_normal([100, 100], stddev=0.35), name="h2")
+        b2 = tf.Variable(tf.random_normal([100]), name='b2')
+
+        h3 = tf.Variable(tf.random_normal([100, 100], stddev=0.35), name="h3")
+        b3 = tf.Variable(tf.random_normal([100]), name='b3')
+
+        h4 = tf.Variable(tf.random_normal([100, 100], stddev=0.35), name="h4")
+        b4 = tf.Variable(tf.random_normal([100]), name='b4')
+
+        # output layer
+        # z_pred = tf.linalg.matmul(z1,h1) + tf.linalg.matmul(z2,h2)
+        hidden_sum = tf.add(tf.matmul(z1, h1_1), tf.matmul(z2, h1_2))  # z1*h1 + z2*h2 == [1, 100] + [1, 100] = [1, 100]
+        hidden_mid_1 = tf.add(hidden_sum, b1)  # hidden_out = (z1*h1 + z2*h2) + b1 == [1, 100]
+        hidden_mid_1 = tf.nn.tanh(hidden_mid_1)  # [1, 100]
+
+        hidden_mid_2 = tf.add(tf.matmul(hidden_mid_1, h2), b2)
+        hidden_mid_2 = tf.nn.tanh(hidden_mid_2)
+
+        hidden_mid_3 = tf.add(tf.matmul(hidden_mid_2, h3), b3)
+        hidden_mid_3 = tf.nn.tanh(hidden_mid_3)
+
+        hidden_final = tf.add(tf.matmul(hidden_mid_3, h4),
+                              b4)  # , tf.matmul(z2, h2_2))  # z1*h1 + z2*h2 == [1, 100] + [1, 100] = [1, 100]
+        # hidden_out_2 = tf.matmul(hidden_out, h2_1) #, tf.matmul(z2, h2_2))  # z1*h1 + z2*h2 == [1, 100] + [1, 100] = [1, 100]
+        z_pred = tf.nn.leaky_relu(hidden_final)  # 0.91
+
+        # Add ops to save and restore all the variables.
+        saver = tf.train.Saver()
+        # Restore variables from disk.
+        saver.restore(session, 'flow_songs/ANN_model_2000.ckpt')
+        print("Model restored.")
+
+        folder_name = 'final_interpolation_dataset_unseen'
+        directory = sorted(os.listdir(folder_name))[:]
+        mse_original_naive_arr = [] #store mse values
+        mse_original_flow_arr = []
+
+        for j in range(0,30):
+            for h in range(0,len(directory)):
+                #print("modulus", h%3)
+                if h%3==0:
+                    print(directory[h])
+                    song_name_1 = directory[h]
+                    interp_real = directory[h+1]
+                    song_name_2 = directory[h+2]
+                    #print(interp_real)
+                    #print(song_name_2)
+                    #song_name_1 = '947aecbf5e48d5ee7282abe1b815bb86_2173.midi_18_1.midi'
+                    #interp_real = '947aecbf5e48d5ee7282abe1b815bb86_2173.midi_18_2.midi'
+                    #song_name_2 = '947aecbf5e48d5ee7282abe1b815bb86_2173.midi_18_3.midi'
+                    target_length = 64
+                    pad = pad_64x2
+                    # ---------------------------------------------------------#
+                    # target_length #  pad   # lowerBound # upperBound # span #
+                    #     44         pad_44x2      36           80        44  #
+                    #     64         pad_64x2      28           92        64  #
+                    #     78         pad_78x2      22           100       78  #
+                    # ---------------------------------------------------------#
+                    state_1 = midiToNoteStateMatrix(folder_name + '/' + song_name_1)  # shape 43x64x2
+                    state_2 = midiToNoteStateMatrix(folder_name + '/' + song_name_2)  # shape 43x64x2
+                    state_3 = midiToNoteStateMatrix(folder_name + '/' + interp_real)  # shape 43x64x2
+                    state_1 = padStateMatrix(folder_name, song_name_1, target_length, pad, save_as_midi=False)  # shape 64x64x2
+                    state_1_last = state_1[0:42]
+                    state_2 = padStateMatrix(folder_name, song_name_2, target_length, pad, save_as_midi=False)  # shape 64x64x2
+                    state_2_last = state_2[0:42]
+                    state_3 = padStateMatrix(folder_name, interp_real, target_length, pad, save_as_midi=False)  # shape 64x64x2
+                    state_3_last = state_3[0:42]
+
+                    # print(state_2[40])
+                    state_1 = np.einsum('ijk->kij', state_1)  # shape 2x64x64
+                    state_2 = np.einsum('ijk->kij', state_2)  # shape 2x64x64
+                    state_3 = np.einsum('ijk->kij', state_3)  # shape 2x64x64
+                    state_1 = state_1.astype(np.float32)  # set to float in order to keep data consistency
+                    state_2 = state_2.astype(np.float32)  # set to float in order to keep data consistency
+                    state_3 = state_3.astype(np.float32)  # set to float in order to keep data consistency
+                    state_1 = torch.from_numpy(state_1)  # convert state: numpy array to torch tensor
+                    state_2 = torch.from_numpy(state_2)  # convert state: numpy array to torch tensor
+                    state_3 = torch.from_numpy(state_3)  # convert state: numpy array to torch tensor
+
+                    model.eval()
+                    z1_example = analyze.get_z(state_1, model, device)
+                    # print("z1_example:", z1_example, z1_example.shape, type(z1_example))
+                    z1_example = z1_example.cpu().numpy()
+                    z1_example = np.expand_dims(z1_example, axis=0)
+                    #print("z1_example:", z1_example, z1_example.shape, type(z1_example))
+                    z2_example = analyze.get_z(state_2, model, device)
+                    z2_example = z2_example.cpu().numpy()
+                    z2_example = np.expand_dims(z2_example, axis=0)
+                    # print("z2_example:", z2_example, z2_example.shape)
+                    z3_example = analyze.get_z(state_3, model, device)
+                    z3_example = z3_example.cpu().numpy()
+                    #print("TRUE INTERPOLATION ENCODED Z:", z3_example, type(z3_example), z3_example.shape)
+                    #z3_example = np.expand_dims(z3_example, axis=0)
+
+                    feed_dict = {z1: z1_example, z2: z2_example}
+                    interp_encoded = session.run(z_pred, feed_dict)
+                    #print("PREDICTION:")
+                    #print(interp_encoded)  # np array (1,1,100) --> to class torch ([1, 100])
+                    interp_encoded = np.squeeze(interp_encoded, axis=0)  # np array (1,100)
+                    #print("FLOW PREDICTED Z:", interp_encoded, type(interp_encoded), interp_encoded.shape)
+                    #interp_encoded = torch.from_numpy(interp_encoded).to(device)  # torch tensor
+                    #print("features:", type(interp_encoded), interp_encoded.shape)
+                    #print("REAL INTERP Z")
+                    #print(z3_example)
+                    f = 0.5
+                    z_naive = (f * (analyze.get_z(state_1, model, device)) + (1 - f) * (analyze.get_z(state_2, model, device))).to(device)
+                    z_naive = z_naive.cpu().numpy()
+                    #print("NAIVE INTERPOLATION ENCODED Z:", z_naive, type(z_naive), z_naive.shape)
+                    #--------------------------------------------------
+                    midi_threshold = .4
+                    #--------------------------------------------------
+
+                    #print("original:", state_3_last.shape)  # flow interpolating np --> comparison 2 (42x64x2)
+
+                    mse_naive_original = (np.square(z3_example - z_naive)).mean(axis=None)
+                    mse_original_naive_arr.append(mse_naive_original)
+                    #print("MSE original vs naive interpolation", mse_naive_original)
+                    mse_flow_original = (np.square(z3_example - interp_encoded)).mean(axis=None)
+                    mse_original_flow_arr.append(mse_flow_original)
+                    #print("MSE original vs flow interpolation ", mse_flow_original)
+                    print(j, "/ 30")
+        print("metric averaged", len(mse_original_naive_arr), "and", len(mse_original_flow_arr), "times")
+        print("averaged MSE original vs naive interpolation", sum(mse_original_naive_arr)/len(mse_original_naive_arr))
+        print("averaged MSE original vs flow interpolation", sum(mse_original_flow_arr)/len(mse_original_flow_arr))
