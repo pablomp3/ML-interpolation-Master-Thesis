@@ -1,6 +1,6 @@
 ## ML-interpolation-Master-Thesis
 # Variational Autoencoders for Polyphonic Music Interpolation
-This is my Master Thesis, submitted to National Tsing Hua University (Taiwan, July 2020).
+This is my Master Thesis, submitted to National Tsing Hua University (Taiwan, July 2020). All the code can be found in this repository.
 
 ### **Abstract**
 
@@ -21,7 +21,7 @@ In traditional Machine Learning, the generation of music is conditioned on the p
 In **monophonic** music, every timestep or time unit contains one single note. On the other hand, in **polyphonic** music, every timestep contains several notes, forming chords that make the composition richer. We use MIDI (Musical Instrument Digital Interface) to represent the music in a symbolic way, instead of using the raw waveform (which is computationally expensive to manipulate). Each timestep of a song is represented as a **vector of 64 binary elements**, where each binary element represents one piano key (or one note or pitch), 1 meaning _note on_ and 0 meaning _note off_.
 
 <p align="center">
-  <img width="550" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/mono_vs_polyphonic.jpg">
+  <img width="650" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/mono_vs_polyphonic.jpg">
 </p>
 
 <p align="center">
@@ -31,6 +31,10 @@ In **monophonic** music, every timestep or time unit contains one single note. O
 ### Dataset
 
 A new MIDI dataset based on the Lahk MIDI Dataset has been created: the _Hsinchu Interpolation MIDI Dataset_. This dataset contains only very valuable interpolation segments, where the begin track and the end track are very different (simulating a style transfer within the same human composition). The begin and end tracks similarity has been evaluated with a neural network (binary classification problem). The _Hsinchu Interpolation MIDI Dataset_ contains 30,830 segments of 30 seconds each.
+
+<p align="center">
+  <img width="360" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/hsinchu_interpolation_dataset.jpg">
+</p>
 
 ### Experiments
 
@@ -45,29 +49,29 @@ Four experiments have been done in this thesis. Experiments 1 and 2 are the **ba
 
 01. Encode begin track and end track with VAE to obtain z_begin and z_end, respectively:
 <p align="center">
-  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/begin_end_encoding.jpg">
+  <img width="360" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/begin_end_encoding.jpg">
 </p>
 
 02. Average vectors z_begin and z_end to obtain the interpolation encoded vector z_interpolation:
 <p align="center">
-  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_by_average.jpg">
+  <img width="400" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_by_average.jpg">
 </p>
 
 03. Decode the interpolation encoded vector z_interpolation to obtain the interpolation track:
 <p align="center">
-  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_decoding.jpg">
+  <img width="360" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_decoding.jpg">
 </p>
 
 04. Ideally, the reconstructed interpolation track has to be identical to the original interpolation track (ground truth):
 <p align="center">
-  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg">
+  <img width="300" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg">
 </p>
 
 #### Experiment 4. VAE+NN: interpolation done with direct estimation of the interpolation encoded vector. Steps:
 
 01. Encode begin track and end track with VAE to obtain z_begin and z_end, respectively:
 <p align="center">
-  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/begin_end_encoding.jpg">
+  <img width="360" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/begin_end_encoding.jpg">
 </p>
 
 02. Use the novel neural network (NN) approach to directly estimate the interpolation encoded vector z_interpolation based on z_begin and z_end:
@@ -77,18 +81,18 @@ Four experiments have been done in this thesis. Experiments 1 and 2 are the **ba
 
 03. Decode the interpolation encoded vector z_interpolation to obtain the interpolation track:
 <p align="center">
-  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_decoding.jpg">
+  <img width="360" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_decoding.jpg">
 </p>
 
 04. Ideally, the reconstructed interpolation track has to be identical to the original interpolation track (ground truth):
 <p align="center">
-  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg">
+  <img width="300" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg">
 </p>
 
 Full architecture of the novel VAE+NN model proposed in this thesis:
 
 <p align="center">
-  <img width="550" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/VAE%2BNN_architecture.jpg">
+  <img width="700" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/VAE%2BNN_architecture.jpg">
 </p>
 
 ### Results
