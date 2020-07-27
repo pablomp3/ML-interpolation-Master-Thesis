@@ -97,3 +97,29 @@ Full architecture of the novel VAE+NN model proposed in this thesis:
 
 ### Results
 
+#### Objective evaluation based on MSE error with respect to human compositions (ground truth):
+01. Averaged MSE error of each model's tracks:
+<p align="center">
+  <img width="700" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/MSE_average.jpg">
+</p>
+
+02. MSE error by binarization threshold of each model's tracks:
+<p align="center">
+  <img width="700" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/MSE_by_threshold.jpg">
+</p>
+
+03. MSE error of latent space of VAE models:
+<p align="center">
+  <img width="700" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/MSE_latent_space.jpg">
+</p>
+
+#### Subjective evaluation based on the preference of 32 users from 8 different countries in Africa, America, Asia and Europe:
+01. Pair-wise comparisons of each model's tracks:
+<p align="center">
+  <img width="700" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/subjective_evaluation.jpg">
+</p>
+
+02. Total number of votes per model:
+<p align="center">
+  <img width="700" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/subjective_evaluation_total.jpg">
+</p>
