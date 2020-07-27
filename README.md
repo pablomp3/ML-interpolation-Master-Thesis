@@ -37,6 +37,19 @@ Four experiments have been done in this thesis:
 
 #### 03. VAE: interpolation done with linear sampling of latent space. Steps:
 
+<p align="center">
+  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/begin_end_encoding.jpg">
+</p>
+<p align="center">
+  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_by_average.jpg">
+</p>
+<p align="center">
+  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_decoding.jpg">
+</p>
+<p align="center">
+  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg">
+</p>
+
 <img align="center" width="150" height="150" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/begin_end_encoding.jpg">
 
 <img align="center" width="150" height="150" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_by_average.jpg">
