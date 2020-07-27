@@ -12,15 +12,21 @@ This thesis aims to use Machine Learning techniques to solve the novel problem o
 
 In traditional Machine Learning, the generation of music is conditioned on the past events. But what if we could **condition the music generation on both past and future events**? We would input a begin track and an end track of 10 seconds each to our model, obtaining the middle (or interpolation) track of also 10 seconds as output, whose pitches and dynamics match both given tracks.
 
-![](https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/interpolation_definition.jpg)
+<p align="center">
+  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/interpolation_definition.jpg">
+</p>
 
 ### **What is polyphonic music and how to model it?**
 
 In **monophonic** music, every timestep or time unit contains one single note. On the other hand, in **polyphonic** music, every timestep contains several notes, forming chords that make the composition richer. We use MIDI (Musical Instrument Digital Interface) to represent the music in a symbolic way, instead of using the raw waveform (which is computationally expensive to manipulate). Each timestep of a song is represented as a **vector of 64 binary elements**, where each binary element represents one piano key (or one note or pitch), 1 meaning _note on_ and 0 meaning _note off_.
 
-![](https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/mono_vs_polyphonic.jpg)
+<p align="center">
+  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/mono_vs_polyphonic.jpg">
+</p>
 
-![](https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/polyphonic_modelling.jpg)
+<p align="center">
+  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/polyphonic_modelling.jpg">
+</p>
 
 ### Dataset
 
@@ -28,20 +34,39 @@ A new MIDI dataset based on the Lahk MIDI Dataset has been created: the _Hsinchu
 
 ### Experiments
 
-Four experiments have been done in this thesis:
+Four experiments have been done in this thesis. Experiments 1 and 2 are the **baselines**. Experiments 03 and 04 are **proposed novel models** based on Variational Autoencoders to solve the interpolation problem:
 
 01. Random Data
 02. Bi-LSTM
 03. VAE
 04. VAE+NN
 
-#### 03. VAE: interpolation done with linear sampling of latent space. Steps:
+#### Experiment 3. VAE: interpolation done with linear sampling of latent space. Steps:
+
+01. Encode begin track and end track with VAE to obtain z_begin and z_end, respectively:
+<p align="center">
+  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/begin_end_encoding.jpg">
+</p>
+
+<p align="center">
+  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_by_average.jpg">
+</p>
+
+<p align="center">
+  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_decoding.jpg">
+</p>
+
+<p align="center">
+  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg">
+</p>
+
+#### Experiment 4. VAE+NN: interpolation done with direct estimation of the interpolation encoded vector. Steps:
 
 <p align="center">
   <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/begin_end_encoding.jpg">
 </p>
 <p align="center">
-  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_by_average.jpg">
+  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_by_nn.jpg">
 </p>
 <p align="center">
   <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_decoding.jpg">
@@ -50,30 +75,11 @@ Four experiments have been done in this thesis:
   <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg">
 </p>
 
-<img align="center" width="150" height="150" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/begin_end_encoding.jpg">
-
-<img align="center" width="150" height="150" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_by_average.jpg">
-
-<img align="center" width="150" height="150" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_decoding.jpg">
-
-<img align="center" width="150" height="150" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg">
-
-![](https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/begin_end_encoding.jpg)
-![](https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_by_average.jpg)
-![](https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_decoding.jpg)
-![](https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg)
-
-#### 04. VAE+NN: interpolation done with direct estimation of the interpolation encoded vector. Steps:
-Experiments 01 and 02 are the baselines. Experiments 03 and 04 are proposed novel models based on Variational Autoencoders to solve the interpolation problem.
-
-![](https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/begin_end_encoding.jpg)
-![](https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_by_nn.jpg)
-![](https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/z_interpolation_decoding.jpg)
-![](https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg)
-
 Full architecture of the novel VAE+NN model proposed in this thesis:
 
-![](https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/VAE%2BNN_architecture.jpg)
+<p align="center">
+  <img width="460" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/VAE%2BNN_architecture.jpg">
+</p>
 
 ### Results
 
