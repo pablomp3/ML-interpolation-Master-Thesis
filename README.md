@@ -13,7 +13,7 @@ This thesis aims to use Machine Learning techniques to solve the novel problem o
 In traditional Machine Learning, the generation of music is conditioned on the past events. But what if we could **condition the music generation on both past and future events**? We would input a begin track and an end track of 10 seconds each to our model, obtaining the middle (or interpolation) track of also 10 seconds as output, whose pitches and dynamics match both given tracks.
 
 <p align="center">
-  <img width="550" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/interpolation_definition.jpg">
+  <img width="650" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/interpolation_definition.jpg">
 </p>
 
 ### **What is polyphonic music and how to model it?**
@@ -25,7 +25,7 @@ In **monophonic** music, every timestep or time unit contains one single note. O
 </p>
 
 <p align="center">
-  <img width="550" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/polyphonic_modelling.jpg">
+  <img width="600" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/polyphonic_modelling.jpg">
 </p>
 
 ### Dataset
@@ -33,7 +33,7 @@ In **monophonic** music, every timestep or time unit contains one single note. O
 A new MIDI dataset based on the Lahk MIDI Dataset has been created: the _Hsinchu Interpolation MIDI Dataset_. This dataset contains only very valuable interpolation segments, where the begin track and the end track are very different (simulating a style transfer within the same human composition). The begin and end tracks similarity has been evaluated with a neural network (binary classification problem). The _Hsinchu Interpolation MIDI Dataset_ contains 30,830 segments of 30 seconds each.
 
 <p align="center">
-  <img width="360" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/hsinchu_interpolation_dataset.jpg">
+  <img width="600" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/hsinchu_interpolation_dataset.jpg">
 </p>
 
 ### Experiments
@@ -64,7 +64,7 @@ Four experiments have been done in this thesis. Experiments 1 and 2 are the **ba
 
 04. Ideally, the reconstructed interpolation track has to be identical to the original interpolation track (ground truth):
 <p align="center">
-  <img width="300" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg">
+  <img width="360" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg">
 </p>
 
 #### Experiment 4. VAE+NN: interpolation done with direct estimation of the interpolation encoded vector. Steps:
@@ -86,7 +86,7 @@ Four experiments have been done in this thesis. Experiments 1 and 2 are the **ba
 
 04. Ideally, the reconstructed interpolation track has to be identical to the original interpolation track (ground truth):
 <p align="center">
-  <img width="300" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg">
+  <img width="360" src="https://github.com/pablomp3/ML-interpolation-Master-Thesis/blob/master/images/original_vs_reconstructed_input.jpg">
 </p>
 
 Full architecture of the novel VAE+NN model proposed in this thesis:
